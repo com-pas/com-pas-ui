@@ -1,13 +1,14 @@
 import { expect, fixture } from '@open-wc/testing';
 
-import { html, LitElement } from 'lit';
+import { html } from 'lit';
+
 import { customElement } from 'lit/decorators.js';
 
-import { Plugging } from '../../src/mixins/Plugging.js';
+import { OpenSCD } from '../../src/open-scd.js';
 
 namespace util {
   @customElement('plugging-element')
-  export class PluggingElement extends Plugging(LitElement) {}
+  export class PluggingElement extends OpenSCD {}
 }
 
 describe('Plugging Element', () => {

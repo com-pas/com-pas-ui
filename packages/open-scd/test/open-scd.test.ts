@@ -3,12 +3,15 @@ import { visualDiff } from '@web/test-runner-visual-regression';
 import type { IconButton } from '@material/mwc-icon-button';
 import type { ListItem } from '@material/mwc-list/mwc-list-item.js';
 
-import '../src/open-scd.js';
 import { expect } from '@open-wc/testing';
+
+import { Edit, newEditEvent, newOpenEvent } from '@openscd/open-scd-core';
+
+import '../src/open-scd.js';
+
 import type { OpenSCD } from '../src/open-scd.js';
 
 import { allLocales } from '../src/locales.js';
-import { Edit, newEditEvent, newOpenEvent } from '@openscd/open-scd-core';
 
 const factor = window.process && process.env.CI ? 4 : 2;
 

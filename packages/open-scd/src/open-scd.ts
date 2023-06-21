@@ -19,23 +19,20 @@ import type { Dialog } from '@material/mwc-dialog';
 import type { Drawer } from '@material/mwc-drawer';
 
 import {
+  EditEvent,
+  handleEdit,
   isComplex,
   isInsert,
   isRemove,
   isUpdate,
   LogEntry,
+  OpenEvent,
   Plugin,
+  PluginSet,
   pluginTag,
 } from '@openscd/open-scd-core';
 
 import { allLocales, sourceLocale, targetLocales } from './locales.js';
-
-import { Editing } from './mixins/Editing.js';
-
-import { Plugging } from './mixins/Plugging.js';
-
-export { Plugging } from './mixins/Plugging.js';
-export { Editing } from './mixins/Editing.js';
 
 type Control = {
   icon: string;
@@ -105,7 +102,7 @@ function renderMenuItem(control: Control): TemplateResult {
  */
 @customElement('open-scd')
 @localized()
-export class OpenSCD extends Plugging(Editing(LitElement)) {
+export class OpenSCD extends LitElement {
   @query('#log')
   logUI!: Dialog;
 
@@ -226,10 +223,116 @@ export class OpenSCD extends Plugging(Editing(LitElement)) {
     e.preventDefault();
   }
 
+  @state()
+  /** The `XMLDocument` currently being edited */
+  get doc(): XMLDocument {
+    return this.docs[this.docName];
+  }
+
+  @state()
+  history: LogEntry[] = [];
+
+  @state()
+  editCount: number = 0;
+
+  @state()
+  get last(): number {
+    return this.editCount - 1;
+  }
+
+  @state()
+  get canUndo(): boolean {
+    return this.last >= 0;
+  }
+
+  @state()
+  get canRedo(): boolean {
+    return this.editCount < this.history.length;
+  }
+
+  /**
+   * The set of `XMLDocument`s currently loaded
+   *
+   * @prop {Record} docs - Record of loaded XML documents
+   */
+  @state()
+  docs: Record<string, XMLDocument> = {};
+
+  /**
+   * The name of the [[`doc`]] currently being edited
+   *
+   * @prop {String} docName - name of the document that is currently being edited
+   */
+  @property({ type: String, reflect: true }) docName = '';
+
+  handleOpenDoc({ detail: { docName, doc } }: OpenEvent) {
+    this.docName = docName;
+    this.docs[this.docName] = doc;
+  }
+
+  handleEditEvent(event: EditEvent) {
+    const edit = event.detail;
+    this.history.splice(this.editCount);
+    this.history.push({ undo: handleEdit(edit), redo: edit });
+    this.editCount += 1;
+  }
+
+  /** Undo the last `n` [[Edit]]s committed */
+  undo(n = 1) {
+    if (!this.canUndo || n < 1) return;
+    handleEdit(this.history[this.last!].undo);
+    this.editCount -= 1;
+    if (n > 1) this.undo(n - 1);
+  }
+
+  /** Redo the last `n` [[Edit]]s that have been undone */
+  redo(n = 1) {
+    if (!this.canRedo || n < 1) return;
+    handleEdit(this.history[this.editCount].redo);
+    this.editCount += 1;
+    if (n > 1) this.redo(n - 1);
+  }
+
+  #loadedPlugins = new Map<string, Plugin>();
+
+  @state()
+  get loadedPlugins(): Map<string, Plugin> {
+    return this.#loadedPlugins;
+  }
+
+  #plugins: PluginSet = { menu: [], editor: [] };
+
+  /**
+   * @prop {PluginSet} plugins - Set of plugins that are used by OpenSCD
+   */
+  @property({ type: Object })
+  get plugins(): PluginSet {
+    return this.#plugins;
+  }
+
+  set plugins(plugins: Partial<PluginSet>) {
+    Object.values(plugins).forEach(kind =>
+      kind.forEach(plugin => {
+        const tagName = pluginTag(plugin.src);
+        if (this.loadedPlugins.has(tagName)) return;
+        this.#loadedPlugins.set(tagName, plugin);
+        if (customElements.get(tagName)) return;
+        const url = new URL(plugin.src, window.location.href).toString();
+        import(url).then(mod => customElements.define(tagName, mod.default));
+      })
+    );
+
+    this.#plugins = { menu: [], editor: [], ...plugins };
+    this.requestUpdate();
+  }
+
   constructor() {
     super();
     this.handleKeyPress = this.handleKeyPress.bind(this);
     document.addEventListener('keydown', this.handleKeyPress);
+
+    this.addEventListener('oscd-open', this.handleOpenDoc);
+    this.addEventListener('oscd-edit', event => this.handleEditEvent(event));
   }
 
   private renderLogEntry(entry: LogEntry) {

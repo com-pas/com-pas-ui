@@ -17,8 +17,6 @@ import {
   webUrl,
 } from 'fast-check';
 
-import { LitElement } from 'lit';
-
 import { customElement } from 'lit/decorators.js';
 
 import {
@@ -32,7 +30,7 @@ import {
   Update,
 } from '@openscd/open-scd-core';
 
-import { Editing } from '../../src/mixins/Editing.js';
+import { OpenSCD } from '../../src/open-scd';
 
 export namespace util {
   export const xmlAttributeName =
@@ -186,7 +184,7 @@ export namespace util {
   }
 
   @customElement('editing-element')
-  export class EditingElement extends Editing(LitElement) {}
+  export class EditingElement extends OpenSCD {}
 }
 
 describe('Editing Element', () => {
