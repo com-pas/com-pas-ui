@@ -1,0 +1,15 @@
+{
+  "name": "@openscd/oscd-wizarding",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "copy": "npm run build && copyfiles -u 1 dist/* ../../packages/open-scd/addons/wizarding"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@openscd/open-scd": "*"
+  }
+}

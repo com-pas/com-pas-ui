@@ -28,3 +28,7 @@ export type { LogEntry } from './foundation/editing.js';
 export { pluginTag } from './foundation/plugging.js';
 
 export type { Plugin, PluginSet } from './foundation/plugging.js';
+
+export type { Addon } from './foundation/addoning.js';
+
+export { EventBus } from './foundation/event-bus.js';

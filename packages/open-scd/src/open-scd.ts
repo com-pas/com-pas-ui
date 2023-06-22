@@ -19,7 +19,9 @@ import type { Dialog } from '@material/mwc-dialog';
 import type { Drawer } from '@material/mwc-drawer';
 
 import {
+  Addon,
   EditEvent,
+  EventBus,
   handleEdit,
   isComplex,
   isInsert,
@@ -326,13 +328,44 @@ export class OpenSCD extends LitElement {
     this.requestUpdate();
   }
 
+  #addons: Addon[] = [];
+
+  /**
+   * @prop {Addon[]} addons - Set of addons that are used by OpenSCD
+   */
+  @property({ type: Array })
+  get addons(): Addon[] {
+    return this.#addons;
+  }
+
+  set addons(value: Addon[]) {
+    value.forEach(addon => {
+      const url = new URL(addon.src, window.location.href).toString();
+      import(url).then(mod => {
+        mod.default(this, addon);
+      });
+    });
+
+    this.#addons = value;
+    this.requestUpdate();
+  }
+
+  public readonly eventBus: EventBus;
+
   constructor() {
     super();
+
+    this.eventBus = new EventBus();
+
     this.handleKeyPress = this.handleKeyPress.bind(this);
     document.addEventListener('keydown', this.handleKeyPress);
 
     this.addEventListener('oscd-open', this.handleOpenDoc);
     this.addEventListener('oscd-edit', event => this.handleEditEvent(event));
+
+    this.eventBus.addEventListener('oscd-validate', () => {
+      console.log('Validate');
+    });
   }
 
   private renderLogEntry(entry: LogEntry) {
@@ -363,6 +396,7 @@ export class OpenSCD extends LitElement {
       '.locale': this.locale,
       '.docName': this.docName,
       '.docs': this.docs,
+      '.eventBus': this.eventBus,
     };
   }
 

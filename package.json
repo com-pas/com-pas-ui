@@ -4,15 +4,18 @@
   "description": "",
   "main": "index.js",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "plugins/*",
+    "addons/*"
   ],
   "scripts": {
-    "start": "lerna run start"
+    "start": "lerna run start",
+    "copy": "lerna run copy"
   },
   "author": "",
   "license": "ISC",
-  "dependencies": {},
   "devDependencies": {
+    "copyfiles": "^2.4.1",
     "lerna": "^7.0.2"
   }
 }

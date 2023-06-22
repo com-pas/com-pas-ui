@@ -1,14 +1,16 @@
 import { cyrb64 } from './cyrb64.js';
 
-export type Plugin = {
+export type Plugin<T> = {
   name: string;
   translations?: Record<string, string>;
   src: string;
   icon: string;
   requireDoc?: boolean;
   active?: boolean;
+  configuration?: T;
 };
-export type PluginSet = { menu: Plugin[]; editor: Plugin[] };
+
+export type PluginSet = { menu: Plugin<unknown>[]; editor: Plugin<unknown>[] };
 
 const pluginTags = new Map<string, string>();
 
