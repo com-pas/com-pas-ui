@@ -15,3 +15,9 @@
 
 # IDE
 /.idea
+
+# Plugins
+/plugins/
+
+# Addons
+/addons/
